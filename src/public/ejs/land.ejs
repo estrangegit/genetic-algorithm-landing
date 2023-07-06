@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <%- include('head-section'); %>
+        <link rel="stylesheet" href="/public/css/land.css" type="text/css" />
+        <title>genetic algorithm</title>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="jumbotron text-center col-sm-12">
+                    <div class="row">
+                        <div class="col-sm-12">
+                          <h3>Simulation d'atterrissage d'une fusée</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+              <div id="drawArea" class="bg-light">
+                  <canvas
+                      class="land"
+                      width="1000"
+                      height="500">
+                  </canvas>
+              </div>
+            </div>
+            <div class="row">
+              <div id="commands">
+                <button type="button" class="start btn btn-light">start</button>
+                <button type="button" class="stop btn btn-light">stop</button>
+              </div>
+            </div>
+        </div>
+        <%- include('script-section') %>
+        <script src="/public/js/land.js"></script>
+    </body>
+</html>
