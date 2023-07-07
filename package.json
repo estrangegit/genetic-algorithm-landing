@@ -9,7 +9,7 @@
     ],
     "ext": ".ts,.js,.ejs,.css",
     "ignore": [],
-    "exec": "node -r dotenv/config ./dist/server.js"
+    "exec": "ts-node tools/copyAssets && node -r dotenv/config ./dist/server.js"
   },
   "scripts": {
     "clean": "rimraf ./dist/{*,.*}",
