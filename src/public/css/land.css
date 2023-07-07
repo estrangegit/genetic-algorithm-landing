@@ -27,5 +27,12 @@ body {
 }
 
 #commands {
+  width: 50%;
   margin: auto;
+  text-align: center;
+}
+
+#commands select {
+  width: 20%;
+  display: inline-block;
 }

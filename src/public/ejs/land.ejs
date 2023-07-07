@@ -22,18 +22,26 @@
                   <canvas
                       class="land"
                       width="6999"                      
-                      height="5000">
+                      height="2500">
                   </canvas>
               </div>
             </div>
             <div class="row">
               <div id="commands">
+                <select class="custom-select bg-dark text-white border-dark">
+                    <option selected value="1">One</option>
+                    <option value="2">Two</option>
+                    <option value="3">Three</option>
+                </select>
                 <button type="button" class="start btn btn-dark">start</button>
                 <button type="button" class="stop btn btn-dark">stop</button>
               </div>
             </div>
         </div>
         <%- include('script-section') %>
+        <script src="/public/js/model/Point.js"></script>
+        <script src="/public/js/model/Land.js"></script>
+        <script src="/public/js/data.js"></script>
         <script src="/public/js/land.js"></script>
     </body>
 </html>

@@ -13,7 +13,7 @@ const normalizePort = (val: any): any => {
   }
   return false;
 };
-/* eslint-disable  @typescript-eslint/no-explicit-any */
+/* eslint-enable  @typescript-eslint/no-explicit-any */
 
 const port = normalizePort(process.env.SERVER_PORT || '8080');
 
