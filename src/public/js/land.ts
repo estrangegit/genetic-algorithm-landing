@@ -25,11 +25,24 @@ $(function(){
 
   let selectedLand: string = ($landSelector.val() as string);
   let points = gameData[selectedLand].points;
+  const gameConfig = new GameConfig();
   const land = new Land();
 
+  gameConfig.width = +gameData[selectedLand]['game-config'].split(' ')[0];
+  gameConfig.height = +gameData[selectedLand]['game-config'].split(' ')[1];
+  gameConfig.g = +gameData[selectedLand]['game-config'].split(' ')[2];
+  gameConfig.maxLandingHSpeed = +gameData[selectedLand]['game-config'].split(' ')[3];
+  gameConfig.maxLandingVSpeed = +gameData[selectedLand]['game-config'].split(' ')[4];
+  gameConfig.thrustStep = +gameData[selectedLand]['game-config'].split(' ')[5];
+  gameConfig.angleStep = +gameData[selectedLand]['game-config'].split(' ')[6];
+  gameConfig.minThrust = +gameData[selectedLand]['game-config'].split(' ')[7];
+  gameConfig.maxThrust = +gameData[selectedLand]['game-config'].split(' ')[8];
+  gameConfig.minAngle = +gameData[selectedLand]['game-config'].split(' ')[9];
+  gameConfig.maxAngle = +gameData[selectedLand]['game-config'].split(' ')[10];
   for(let i = 0; i < points.length; i++) {
-    land.addPoint(points[i].split(' ')[0], points[i].split(' ')[1]);
+    land.addPoint(+points[i].split(' ')[0], +points[i].split(' ')[1]);
   }
+  console.log(gameConfig);
   land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   $landSelector.on('change', function() {
@@ -44,11 +57,11 @@ $(function(){
     land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
   })
 
-  if(ctx != null) {      
+  if(ctx != null) {
     $startButton.on('click', () => {
       console.log('start button have been hit');
     })
-  
+
     $stopButton.on('click', () => {
       console.log('stop button have been hit');
     })

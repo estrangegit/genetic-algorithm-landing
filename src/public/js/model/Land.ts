@@ -3,7 +3,7 @@ class Land {
     points: Point[];
 
     constructor() {
-        this.points = [];
+      this.points = [];
     }
 
     reset(): void {
