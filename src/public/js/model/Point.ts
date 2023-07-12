@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-unused-vars */
-class Point {
+export class Point {
     x: number;
     y: number;
     constructor(x: number, y: number) {

@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-unused-vars */
-class GameConfig {
+export class GameConfig {
     width?: number;
     height?: number;
     g?: number;

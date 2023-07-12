@@ -1,3 +1,7 @@
+import { GameConfig } from "./config/GameConfig.js";
+import { gameData } from "./data.js";
+import { Land } from "./model/Land.js";
+
 $(function(){
 
   const CANVAS_WIDTH = 6999;
@@ -42,12 +46,12 @@ $(function(){
   for(let i = 0; i < points.length; i++) {
     land.addPoint(+points[i].split(' ')[0], +points[i].split(' ')[1]);
   }
-  console.log(gameConfig);
   land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   $landSelector.on('change', function() {
     selectedLand = ($(this).val() as string);
     points = gameData[selectedLand].points;
+    console.log(gameConfig);
     land.reset();
 
     for(let i = 0; i < points.length; i++) {

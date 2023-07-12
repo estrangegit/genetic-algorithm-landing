@@ -1,5 +1,7 @@
+import { Point } from "./Point.js";
+
 /* eslint-disable  @typescript-eslint/no-unused-vars */
-class Land {
+export class Land {
     points: Point[];
 
     constructor() {

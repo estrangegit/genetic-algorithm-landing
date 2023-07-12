@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-unused-vars */
-const gameData = {
+export const gameData = {
     'landing 1': {
       'game-config': '7000 3000 3.711 20 40 1 15 0 4 -90 90',
       'nbPoints': '11',

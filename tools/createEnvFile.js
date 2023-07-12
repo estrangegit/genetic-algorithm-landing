@@ -1,4 +1,4 @@
-import * as shell from "shelljs";
+import shell from "shelljs";
 
 const ENV_FILE_LOCATION = 'src/public/js/env.js';
 

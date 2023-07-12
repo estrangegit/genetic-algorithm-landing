@@ -1,5 +1,5 @@
 import http from 'http';
-import app from './app';
+import { app } from './app.js';
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 const normalizePort = (val: any): any => {
@@ -51,5 +51,3 @@ server.on('listening', () => {
 });
 
 server.listen(port);
-
-module.exports = server;

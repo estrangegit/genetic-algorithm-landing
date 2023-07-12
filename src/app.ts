@@ -1,6 +1,10 @@
 import express from 'express';
 import path from 'path';
-import router from './routes';
+import router from './routes.js';
+import url from 'url';
+
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -14,4 +18,4 @@ app.use('*', function(req, res){
     res.render('404.ejs');
 })
 
-export default app;
+export { app };
