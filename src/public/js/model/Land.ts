@@ -1,4 +1,5 @@
 import { Point } from "./Point.js";
+import { SegmentIntersection } from "./SegmentIntersection.js";
 
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export class Land {
@@ -27,6 +28,21 @@ export class Land {
             }
             ctx.stroke();
         }
+    }
+
+    checkLineIntersection(point11: Point, point12: Point, point21: Point, point22: Point): SegmentIntersection {
+        // line intersection algorithm: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+        const denominateur = (point11.x - point12.x) * (point21.y - point22.y) - (point11.y - point12.y) * (point21.x - point22.x);
+        const t = ((point11.x - point21.x) * (point21.y - point22.y) - (point11.y - point21.y) * (point21.x - point22.x)) / denominateur;
+        const u = ((point11.x - point21.x) * (point11.y - point12.y) - (point11.y - point21.y) * (point11.x - point12.x)) / denominateur;
+
+        const x = point11.x + t * (point12.x - point11.x);
+        const y = point11.y + t * (point12.y - point11.y);
+
+        const onSegment1 = t >= 0 && t <= 1;
+        const onSegment2 = u >= 0 && u <= 1;
+
+        return new SegmentIntersection(x, y, onSegment1, onSegment2);
     }
 }
 /* eslint-enable  @typescript-eslint/no-unused-vars */
