@@ -6,7 +6,8 @@ $(function(){
 
   const CANVAS_WIDTH = 7000;
   const CANVAS_HEIGHT = 2500;
-  const ROCKET_NB = 1;
+  const ROCKET_NB = 200;
+  const MAX_TIMESTEP = 300;
 
   const landNames = Object.keys(gameData);
 
@@ -33,12 +34,12 @@ $(function(){
   const land = new Land();
 
   gameConfig.initGameConfig(selectedLand);
-  land.initLand(selectedLand, ROCKET_NB);
+  land.initLand(selectedLand, ROCKET_NB, MAX_TIMESTEP);
   land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   $landSelector.on('change', function() {
     selectedLand = ($(this).val() as string);
-    land.initLand(selectedLand, ROCKET_NB);
+    land.initLand(selectedLand, ROCKET_NB, MAX_TIMESTEP);
     land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
     console.log(land);
   })

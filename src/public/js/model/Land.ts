@@ -1,4 +1,5 @@
 import { gameData } from "../data.js";
+import { Command } from "./Command.js";
 import { Point } from "./Point.js";
 import { Rocket } from "./Rocket.js";
 import { SegmentIntersection } from "./SegmentIntersection.js";
@@ -18,7 +19,7 @@ export class Land {
     this.rockets = [];
   }
 
-  initLand(selectedLand: string, rocketNb: number): void {
+  initLand(selectedLand: string, rocketNb: number, timeStepNb: number): void {
     this.reset();
     const points = gameData[selectedLand].points;
     for(let i = 0; i < points.length; i++) {
@@ -27,6 +28,10 @@ export class Land {
     for(let i = 0; i < rocketNb; i++) {
       const rocket = new Rocket();
       rocket.initRocket(selectedLand);
+      /* eslint-disable  @typescript-eslint/no-non-null-assertion */
+      const commands: Command[] = this.getRandomCommands(rocket.initCommand!, timeStepNb);
+      /* eslint-enable  @typescript-eslint/no-non-null-assertion */
+      rocket.commands = commands;
       this.rockets.push(rocket);
     }
   }
@@ -46,6 +51,29 @@ export class Land {
         }
         ctx.stroke();
     }
+  }
+
+  getRandomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  getRandomCommands(initCommand: Command, commandNb: number): Command[] {
+    const commands: Command[] = [];
+    commands.push(initCommand);
+
+    let angle = initCommand.angle;
+    let power = initCommand.power;
+    for(let i = 0; i < commandNb - 1; i++) {
+      angle += this.getRandomInt(-15, 15);
+      angle = Math.min(Math.max(angle, -90), 90);
+
+      power += this.getRandomInt(-1, 1);
+      power = Math.min(Math.max(power, 0), 4);
+
+      const command = new Command(angle, power);
+      commands.push(command);
+    }
+    return commands;
   }
 
   checkLineIntersection(point11: Point, point12: Point, point21: Point, point22: Point): SegmentIntersection {
