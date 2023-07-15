@@ -4,8 +4,9 @@ import { Land } from "./model/Land.js";
 
 $(function(){
 
-  const CANVAS_WIDTH = 6999;
+  const CANVAS_WIDTH = 7000;
   const CANVAS_HEIGHT = 2500;
+  const ROCKET_NB = 1;
 
   const landNames = Object.keys(gameData);
 
@@ -28,37 +29,18 @@ $(function(){
   const ctx: CanvasRenderingContext2D | null = ($landCanvas[0] as HTMLCanvasElement).getContext('2d');
 
   let selectedLand: string = ($landSelector.val() as string);
-  let points = gameData[selectedLand].points;
   const gameConfig = new GameConfig();
   const land = new Land();
 
-  gameConfig.width = +gameData[selectedLand]['game-config'].split(' ')[0];
-  gameConfig.height = +gameData[selectedLand]['game-config'].split(' ')[1];
-  gameConfig.g = +gameData[selectedLand]['game-config'].split(' ')[2];
-  gameConfig.maxLandingHSpeed = +gameData[selectedLand]['game-config'].split(' ')[3];
-  gameConfig.maxLandingVSpeed = +gameData[selectedLand]['game-config'].split(' ')[4];
-  gameConfig.thrustStep = +gameData[selectedLand]['game-config'].split(' ')[5];
-  gameConfig.angleStep = +gameData[selectedLand]['game-config'].split(' ')[6];
-  gameConfig.minThrust = +gameData[selectedLand]['game-config'].split(' ')[7];
-  gameConfig.maxThrust = +gameData[selectedLand]['game-config'].split(' ')[8];
-  gameConfig.minAngle = +gameData[selectedLand]['game-config'].split(' ')[9];
-  gameConfig.maxAngle = +gameData[selectedLand]['game-config'].split(' ')[10];
-  for(let i = 0; i < points.length; i++) {
-    land.addPoint(+points[i].split(' ')[0], +points[i].split(' ')[1]);
-  }
+  gameConfig.initGameConfig(selectedLand);
+  land.initLand(selectedLand, ROCKET_NB);
   land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   $landSelector.on('change', function() {
     selectedLand = ($(this).val() as string);
-    points = gameData[selectedLand].points;
-    console.log(gameConfig);
-    land.reset();
-
-    for(let i = 0; i < points.length; i++) {
-      land.addPoint(points[i].split(' ')[0], points[i].split(' ')[1]);
-    }
-
+    land.initLand(selectedLand, ROCKET_NB);
     land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
+    console.log(land);
   })
 
   if(ctx != null) {
