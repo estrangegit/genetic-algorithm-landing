@@ -10,23 +10,38 @@ import { Speed } from "./Speed.js";
 export class Land {
   points: Point[];
   rockets: Rocket[];
+  landingZonePoint1: Point;
+  landingZonePoint2: Point;
 
   constructor() {
     this.points = [];
     this.rockets = [];
+    this.landingZonePoint1 = new Point(-1, -1);
+    this.landingZonePoint2 = new Point(-1, -1);
   }
 
-  reset(): void {
+  initLandscape(selectedLand: string, rocketNb: number, timeStepNb: number): void {
     this.points = [];
     this.rockets = [];
+    const points = gameData[selectedLand].points;
+
+    let currentPoint: Point = new Point(-1, -1);
+    let lastPoint: Point = new Point(-1, -1);
+
+    for(let i = 0; i < points.length; i++) {
+      const point: Point = new Point(points[i].split(' ')[0], points[i].split(' ')[1])
+      currentPoint = point;
+      if (currentPoint.y == lastPoint.y) {
+        this.landingZonePoint1 = lastPoint;
+        this.landingZonePoint2 = currentPoint;
+      }
+      lastPoint = point;
+      this.addPoint(point);
+    }
   }
 
-  initLand(selectedLand: string, rocketNb: number, timeStepNb: number): void {
-    this.reset();
-    const points = gameData[selectedLand].points;
-    for(let i = 0; i < points.length; i++) {
-      this.addPoint(points[i].split(' ')[0], points[i].split(' ')[1]);
-    }
+  initRocketRandomCommands(selectedLand: string, rocketNb: number, timeStepNb: number): void {
+    this.rockets = [];
     for(let i = 0; i < rocketNb; i++) {
       const rocket = new Rocket();
       rocket.initRocket(selectedLand);
@@ -70,27 +85,34 @@ export class Land {
       const p2 = this.points[i];
       const segmentIntersection: SegmentIntersection = this.checkLineIntersection(lastPosition, rocket.position, p1, p2)
       if (segmentIntersection.onSegment1 && segmentIntersection.onSegment2) {
-          rocket.isFlying = false;
-          rocket.positions.push(segmentIntersection.intersection);
-          return;
+        rocket.isFlying = false;
+        rocket.positions.push(segmentIntersection.intersection);
+        return;
       }
     }
   }
 
-  addPoint(x: number, y: number): void {
-    this.points.push(new Point(x, y));
+  addPoint(point: Point): void {
+    this.points.push(point);
   }
 
-  draw(ctx: CanvasRenderingContext2D | null, canvasWidth: number, canvasHeight: number): void {
+  drawLandscape(ctx: CanvasRenderingContext2D | null, canvasWidth: number, canvasHeight: number): void {
     if(ctx != null) {
+        ctx.strokeStyle = "black";
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         ctx.lineWidth = 10;
         ctx.beginPath();
-        ctx.moveTo(this.points[0].x, this.points[0].y);
+        ctx.moveTo(this.points[0].x, canvasHeight - this.points[0].y);
         for(let i = 1; i < this.points.length; i++) {
-            ctx.lineTo(this.points[i].x, canvasHeight - this.points[i].y);
+          ctx.lineTo(this.points[i].x, canvasHeight - this.points[i].y);
         }
         ctx.stroke();
+    }
+  }
+
+  drawRockets(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {
+    for(let i = 0; i < this.rockets.length; i++){
+      this.rockets[i].draw(ctx, canvasHeight);
     }
   }
 

@@ -12,11 +12,8 @@ function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig): 
 }
 
 $(function(){
-
-  const CANVAS_WIDTH = 7000;
-  const CANVAS_HEIGHT = 2500;
-  const ROCKET_NB = 10;
-  const MAX_TIMESTEP = 50;
+  const ROCKET_NB = 50;
+  const MAX_TIMESTEP = 100;
 
   const landNames = Object.keys(gameData);
 
@@ -43,25 +40,26 @@ $(function(){
   const land = new Land();
 
   gameConfig.initGameConfig(selectedLand);
-  land.initLand(selectedLand, ROCKET_NB, MAX_TIMESTEP);
-  land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
-  runAlgorithm(MAX_TIMESTEP, land, gameConfig);
+  land.initLandscape(selectedLand, ROCKET_NB, gameConfig.height);
+  land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
 
   $landSelector.on('change', function() {
     selectedLand = ($(this).val() as string);
-    land.initLand(selectedLand, ROCKET_NB, MAX_TIMESTEP);
-    land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
-    runAlgorithm(MAX_TIMESTEP, land, gameConfig);
-    console.log(land);
+    land.initLandscape(selectedLand, ROCKET_NB, MAX_TIMESTEP);
+    land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
   })
 
   if(ctx != null) {
     $startButton.on('click', () => {
-      console.log('start button have been hit');
+      land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
+      land.initRocketRandomCommands(selectedLand, ROCKET_NB, MAX_TIMESTEP);
+      runAlgorithm(MAX_TIMESTEP, land, gameConfig);
+      land.drawRockets(ctx, gameConfig.height);
+      console.log(land);
     })
 
     $stopButton.on('click', () => {
-      console.log('stop button have been hit');
+      land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
     })
   }
 })

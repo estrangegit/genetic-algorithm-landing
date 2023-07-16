@@ -64,5 +64,18 @@ export class Rocket {
 
    this.command = new Command(nextAngle, nextPower);
   }
+
+  draw(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {
+    if(ctx != null) {
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = "white";
+        ctx.beginPath();
+        ctx.moveTo(this.positions[0].x, canvasHeight - this.positions[0].y);
+        for(let i = 1; i < this.positions.length; i++) {
+            ctx.lineTo(this.positions[i].x, canvasHeight - this.positions[i].y);
+        }
+        ctx.stroke();
+    }
+  }
 }
 /* eslint-enable  @typescript-eslint/no-unused-vars */
