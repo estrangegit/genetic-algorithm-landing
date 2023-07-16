@@ -2,17 +2,31 @@ import { gameData } from "../data.js";
 
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export class GameConfig {
-  width?: number;
-  height?: number;
-  g?: number;
-  maxLandingVSpeed?: number;
-  maxLandingHSpeed?: number;
-  thrustStep?: number;
-  angleStep?: number;
-  minThrust?: number;
-  maxThrust?: number;
-  minAngle?: number;
-  maxAngle?: number;
+  width: number;
+  height: number;
+  g: number;
+  maxLandingVSpeed: number;
+  maxLandingHSpeed: number;
+  thrustStep: number;
+  angleStep: number;
+  minThrust: number;
+  maxThrust: number;
+  minAngle: number;
+  maxAngle: number;
+
+  constructor() {
+    this.width = 0;
+    this.height = 0;
+    this.g = 0;
+    this.maxLandingVSpeed = 0;
+    this.maxLandingHSpeed = 0;
+    this.thrustStep = 0;
+    this.angleStep = 0;
+    this.minThrust = 0;
+    this.maxThrust = 0;
+    this.minAngle = 0;
+    this.maxAngle = 0
+  }
 
   initGameConfig(selectedLand: string): void {
     this.width = +gameData[selectedLand]['game-config'].split(' ')[0];

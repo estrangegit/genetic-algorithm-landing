@@ -2,12 +2,21 @@ import { GameConfig } from "./config/GameConfig.js";
 import { gameData } from "./data.js";
 import { Land } from "./model/Land.js";
 
+function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig): void {
+  for (let i = 0; i < land.rockets.length; i++) {
+    for (let j = 0; j < maxTimeStep; j++) {
+        land.rockets[i].applyCommand();
+        land.goToNextStep(land.rockets[i], gameConfig);
+    }
+  }
+}
+
 $(function(){
 
   const CANVAS_WIDTH = 7000;
   const CANVAS_HEIGHT = 2500;
-  const ROCKET_NB = 200;
-  const MAX_TIMESTEP = 300;
+  const ROCKET_NB = 10;
+  const MAX_TIMESTEP = 50;
 
   const landNames = Object.keys(gameData);
 
@@ -36,11 +45,13 @@ $(function(){
   gameConfig.initGameConfig(selectedLand);
   land.initLand(selectedLand, ROCKET_NB, MAX_TIMESTEP);
   land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
+  runAlgorithm(MAX_TIMESTEP, land, gameConfig);
 
   $landSelector.on('change', function() {
     selectedLand = ($(this).val() as string);
     land.initLand(selectedLand, ROCKET_NB, MAX_TIMESTEP);
     land.draw(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
+    runAlgorithm(MAX_TIMESTEP, land, gameConfig);
     console.log(land);
   })
 

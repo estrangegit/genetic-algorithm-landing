@@ -18,8 +18,8 @@ describe('test series for Land functionalities', () => {
         const point22: Point = new Point(0, 750);
 
         const segmentIntersection: SegmentIntersection = land.checkLineIntersection(point11, point12, point21, point22);
-        expect(segmentIntersection.x).toEqual(500);
-        expect(segmentIntersection.y).toEqual(500);
+        expect(segmentIntersection.intersection.x).toEqual(500);
+        expect(segmentIntersection.intersection.y).toEqual(500);
         expect(segmentIntersection.onSegment1).toEqual(true);
         expect(segmentIntersection.onSegment2).toEqual(true);
     })
@@ -32,8 +32,8 @@ describe('test series for Land functionalities', () => {
         const point22: Point = new Point(750, 375);
 
         const segmentIntersection: SegmentIntersection = land.checkLineIntersection(point11, point12, point21, point22);
-        expect(segmentIntersection.x).toEqual(500);
-        expect(segmentIntersection.y).toEqual(500);
+        expect(segmentIntersection.intersection.x).toEqual(500);
+        expect(segmentIntersection.intersection.y).toEqual(500);
         expect(segmentIntersection.onSegment1).toEqual(true);
         expect(segmentIntersection.onSegment2).toEqual(false);
     })

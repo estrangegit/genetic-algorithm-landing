@@ -1,35 +1,68 @@
 import { gameData } from "../data.js";
 import { Command } from "./Command.js";
 import { Point } from "./Point.js";
+import { Speed } from "./Speed.js";
 
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export class Rocket {
-  points?: Point[];
-  speeds?: number[];
-  commands?: Command[];
-  initX?: number;
-  initY?: number;
-  initXSpeed?: number;
-  initYSpeed?: number;
-  initCommand?: Command;
-  initFuel?: number;
-  x?: number;
-  y?: number;
-  xSpeed?: number;
-  ySpeed?: number;
-  command?: Command;
-  fuel?: number;
+  timeStep: number;
+  positions: Point[];
+  speeds: Speed[];
+  commands: Command[];
+  isFlying: boolean;
+  initPosition: Point;
+  initSpeed: Speed;
+  initCommand: Command;
+  initFuel: number;
+  position: Point;
+  speed: Speed;
+  command: Command;
+  fuel: number;
 
-  initRocket(selectedLand: string): void {
-    this.points = [];
+  constructor() {
+    this.timeStep = 0;
+    this.positions = [];
     this.speeds = [];
     this.commands = [];
-    this.initX = +gameData[selectedLand]['rocket-config'].split(' ')[0];
-    this.initY = +gameData[selectedLand]['rocket-config'].split(' ')[1];
-    this.initXSpeed = +gameData[selectedLand]['rocket-config'].split(' ')[2];
-    this.initYSpeed = +gameData[selectedLand]['rocket-config'].split(' ')[3];
+    this.isFlying = true;
+    this.initPosition = new Point(0, 0);
+    this.initSpeed = new Speed(0, 0);
+    this.initCommand = new Command(0, 0);
+    this.initFuel = 0;
+    this.position = new Point(0, 0);
+    this.speed = new Speed(0, 0);
+    this.command = new Command(0, 0);
+    this.fuel = 0;
+  }
+
+  initRocket(selectedLand: string): void {
+    this.timeStep = 0;
+    this.positions = [];
+    this.speeds = [];
+    this.commands = [];
+    this.initPosition = new Point(+gameData[selectedLand]['rocket-config'].split(' ')[0], +gameData[selectedLand]['rocket-config'].split(' ')[1]);
+    this.position = new Point(this.initPosition.x, this.initPosition.y);
+    this.initSpeed = new Speed(+gameData[selectedLand]['rocket-config'].split(' ')[2], +gameData[selectedLand]['rocket-config'].split(' ')[3]);
+    this.speed = new Speed(this.initSpeed.xSpeed, this.initSpeed.ySpeed);
     this.initFuel =  +gameData[selectedLand]['rocket-config'].split(' ')[4];
+    this.fuel = this.initFuel;
     this.initCommand = new Command(+gameData[selectedLand]['rocket-config'].split(' ')[5], +gameData[selectedLand]['rocket-config'].split(' ')[6]);
+    this.command = new Command(this.initCommand.angle, this.initCommand.power);
+  }
+
+  applyCommand(): void {
+   let nextAngle = this.commands[this.timeStep].angle;
+   let nextPower = this.commands[this.timeStep].power;
+
+   nextAngle = Math.round(nextAngle);
+   nextAngle = Math.max(-90, nextAngle, this.command.angle - 15);
+   nextAngle = Math.min(90, nextAngle, this.command.angle + 15);
+
+   nextPower = Math.round(nextPower);
+   nextPower = Math.max(0, nextPower, this.command.power - 1);
+   nextPower = Math.min(4, nextPower, this.command.power + 1);
+
+   this.command = new Command(nextAngle, nextPower);
   }
 }
 /* eslint-enable  @typescript-eslint/no-unused-vars */
