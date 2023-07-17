@@ -1,4 +1,5 @@
 import { gameData } from "../data.js";
+import { Color } from "./Color.js";
 import { Command } from "./Command.js";
 import { Point } from "./Point.js";
 import { Speed } from "./Speed.js";
@@ -21,6 +22,7 @@ export class Rocket {
   endOutOfLand: boolean;
   endOutOfLandingZone: boolean;
   endOnLandingZone: boolean;
+  score: number;
 
   constructor() {
     this.timeStep = 0;
@@ -39,6 +41,7 @@ export class Rocket {
     this.endOutOfLand = false;
     this.endOutOfLandingZone = false;
     this.endOnLandingZone = false;
+    this.score = 0;
   }
 
   initRocket(selectedLand: string): void {
@@ -71,10 +74,14 @@ export class Rocket {
    this.command = new Command(nextAngle, nextPower);
   }
 
+  getRocketColor(): Color {
+    return new Color((255 * (100 - this.score))/100, (255 * this.score)/100, 0);
+  }
+
   draw(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {
     if(ctx != null) {
         ctx.lineWidth = 10;
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = `rgb(${this.getRocketColor().r}, ${this.getRocketColor().g}, ${this.getRocketColor().b})`;
         ctx.beginPath();
         ctx.moveTo(this.positions[0].x, canvasHeight - this.positions[0].y);
         for(let i = 1; i < this.positions.length; i++) {
