@@ -20,7 +20,7 @@ export class Land {
     this.landingZonePoint2 = new Point(-1, -1);
   }
 
-  initLandscape(selectedLand: string, rocketNb: number, timeStepNb: number): void {
+  initLandscape(selectedLand: string): void {
     this.points = [];
     this.rockets = [];
     const points = gameData[selectedLand].points;
@@ -28,15 +28,38 @@ export class Land {
     let currentPoint: Point = new Point(-1, -1);
     let lastPoint: Point = new Point(-1, -1);
 
+    let currentIndex = -1;
+    let lastIndex = -1;
+
+    let landingZonePoint1Index = -1;
+    let landingZonePoint2Index = -1;
+
     for(let i = 0; i < points.length; i++) {
       const point: Point = new Point(points[i].split(' ')[0], points[i].split(' ')[1])
       currentPoint = point;
+      currentIndex = i;
       if (currentPoint.y == lastPoint.y) {
         this.landingZonePoint1 = lastPoint;
+        landingZonePoint1Index = lastIndex;
         this.landingZonePoint2 = currentPoint;
+        landingZonePoint2Index = currentIndex;
+        this.landingZonePoint1.distanceToLandingZone = 0;
+        this.landingZonePoint2.distanceToLandingZone = 0;
       }
       lastPoint = point;
+      lastIndex = i;
       this.addPoint(point);
+    }
+
+    for (let i = landingZonePoint2Index + 1; i < this.points.length; i++) {
+      const point = this.points[i-1]
+      this.points[i].distanceToLandingZone = point.distanceToLandingZone;
+      this.points[i].distanceToLandingZone += this.points[i].getDistance(point);
+    }
+    for (let i = landingZonePoint1Index - 1; i >= 0; i--) {
+      const point = this.points[i+1]
+      this.points[i].distanceToLandingZone = point.distanceToLandingZone;
+      this.points[i].distanceToLandingZone += this.points[i].getDistance(point);
     }
   }
 
@@ -74,6 +97,7 @@ export class Land {
     rocket.position.y += rocket.speed.ySpeed - (yacc * 0.5);
 
     if (rocket.position.x < 0 || gameConfig.width <= rocket.position.x || rocket.position.y < 0 || gameConfig.height <= rocket.position.y) {
+      rocket.endOutOfLand = true;
       rocket.isFlying = false;
       return;
     }
@@ -86,6 +110,14 @@ export class Land {
       const segmentIntersection: SegmentIntersection = this.checkLineIntersection(lastPosition, rocket.position, p1, p2)
       if (segmentIntersection.onSegment1 && segmentIntersection.onSegment2) {
         rocket.isFlying = false;
+        if(p1.y == p2.y) {
+          rocket.endOnLandingZone = true;
+          segmentIntersection.intersection.distanceToLandingZone = 0;
+        } else {
+          rocket.endOutOfLandingZone = true;
+          const nearestLandPointToLandingZone = p1.distanceToLandingZone < p2.distanceToLandingZone ? p1: p2;
+          segmentIntersection.intersection.distanceToLandingZone = segmentIntersection.intersection.getDistance(nearestLandPointToLandingZone) + nearestLandPointToLandingZone.distanceToLandingZone;
+        }
         rocket.positions.push(segmentIntersection.intersection);
         return;
       }
@@ -98,15 +130,15 @@ export class Land {
 
   drawLandscape(ctx: CanvasRenderingContext2D | null, canvasWidth: number, canvasHeight: number): void {
     if(ctx != null) {
-        ctx.strokeStyle = "black";
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.moveTo(this.points[0].x, canvasHeight - this.points[0].y);
-        for(let i = 1; i < this.points.length; i++) {
-          ctx.lineTo(this.points[i].x, canvasHeight - this.points[i].y);
-        }
-        ctx.stroke();
+      ctx.strokeStyle = "black";
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(this.points[0].x, canvasHeight - this.points[0].y);
+      for(let i = 1; i < this.points.length; i++) {
+        ctx.lineTo(this.points[i].x, canvasHeight - this.points[i].y);
+      }
+      ctx.stroke();
     }
   }
 

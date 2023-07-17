@@ -18,6 +18,9 @@ export class Rocket {
   speed: Speed;
   command: Command;
   fuel: number;
+  endOutOfLand: boolean;
+  endOutOfLandingZone: boolean;
+  endOnLandingZone: boolean;
 
   constructor() {
     this.timeStep = 0;
@@ -33,6 +36,9 @@ export class Rocket {
     this.speed = new Speed(0, 0);
     this.command = new Command(0, 0);
     this.fuel = 0;
+    this.endOutOfLand = false;
+    this.endOutOfLandingZone = false;
+    this.endOnLandingZone = false;
   }
 
   initRocket(selectedLand: string): void {

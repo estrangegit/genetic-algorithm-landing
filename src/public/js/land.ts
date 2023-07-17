@@ -40,12 +40,12 @@ $(function(){
   const land = new Land();
 
   gameConfig.initGameConfig(selectedLand);
-  land.initLandscape(selectedLand, ROCKET_NB, gameConfig.height);
+  land.initLandscape(selectedLand);
   land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
 
   $landSelector.on('change', function() {
     selectedLand = ($(this).val() as string);
-    land.initLandscape(selectedLand, ROCKET_NB, MAX_TIMESTEP);
+    land.initLandscape(selectedLand);
     land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
   })
 
