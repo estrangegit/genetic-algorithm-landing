@@ -96,12 +96,6 @@ export class Land {
     rocket.position.x += rocket.speed.xSpeed - (xacc * 0.5);
     rocket.position.y += rocket.speed.ySpeed - (yacc * 0.5);
 
-    if (rocket.position.x < 0 || gameConfig.width <= rocket.position.x || rocket.position.y < 0 || gameConfig.height <= rocket.position.y) {
-      rocket.endOutOfLand = true;
-      rocket.isFlying = false;
-      return;
-    }
-
     const lastPosition = rocket.positions[rocket.positions.length-1];
 
     for (let i = 1; i < this.points.length; i++) {
@@ -122,6 +116,12 @@ export class Land {
         return;
       }
     }
+
+    if (rocket.position.x < 0 || gameConfig.width <= rocket.position.x || rocket.position.y < 0 || gameConfig.height <= rocket.position.y) {
+      rocket.endOutOfLand = true;
+      rocket.isFlying = false;
+      return;
+    }
   }
 
   addPoint(point: Point): void {
@@ -139,6 +139,40 @@ export class Land {
         ctx.lineTo(this.points[i].x, canvasHeight - this.points[i].y);
       }
       ctx.stroke();
+    }
+  }
+
+  getMaxDistance(gameConfig: GameConfig): number {
+    return Math.sqrt(Math.pow(gameConfig.width, 2) + Math.pow(gameConfig.height, 2));
+  }
+
+  computeRocketScore(rocket: Rocket, gameConfig: GameConfig): void {
+    const rocketSpeed = Math.sqrt(Math.pow(rocket.speed.xSpeed, 2) + Math.pow(rocket.speed.ySpeed, 2));
+    const maxSpeed = Math.sqrt(Math.pow(gameConfig.maxLandingHSpeed, 2) + Math.pow(gameConfig.maxLandingVSpeed, 2));
+    if(rocket.endOutOfLandingZone) {
+      const score = 50 - (50 * rocket.positions[rocket.positions.length - 1].distanceToLandingZone / this.getMaxDistance(gameConfig))
+      const speedPenalty = 0.05 * Math.max(rocketSpeed - maxSpeed, 0);
+      rocket.score = score - speedPenalty;
+    } else if(rocket.endOnLandingZone && (rocket.speed.ySpeed < -gameConfig.maxLandingVSpeed || Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed || rocket.command.angle  != 0)) {
+      let xSpeedPenalty = 0;
+      let ySpeedPenalty = 0;
+      if (Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed) {
+        xSpeedPenalty = (Math.abs(rocket.speed.xSpeed) - gameConfig.maxLandingHSpeed) / 6;
+      }
+      if (rocket.speed.ySpeed < -gameConfig.maxLandingVSpeed) {
+        ySpeedPenalty = (-gameConfig.maxLandingVSpeed - rocket.speed.ySpeed) / 6;
+      }
+      rocket.score = 80 - xSpeedPenalty - ySpeedPenalty;
+    } else if(rocket.endOnLandingZone && rocket.speed.ySpeed >= -gameConfig.maxLandingVSpeed && Math.abs(rocket.speed.xSpeed) <= gameConfig.maxLandingHSpeed && rocket.command.angle  == 0) {
+      rocket.score = 80 + (20 * rocket.fuel / rocket.initFuel)
+    } else {
+      rocket.score = 0;
+    }
+  }
+
+  computeRocketScores(gameConfig: GameConfig): void {
+    for(let i = 0; i < this.rockets.length; i++) {
+      this.computeRocketScore(this.rockets[i], gameConfig);
     }
   }
 

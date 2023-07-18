@@ -54,6 +54,7 @@ $(function(){
       land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
       land.initRocketRandomCommands(selectedLand, ROCKET_NB, MAX_TIMESTEP);
       runAlgorithm(MAX_TIMESTEP, land, gameConfig);
+      land.computeRocketScores(gameConfig);
       land.drawRockets(ctx, gameConfig.height);
       console.log(land);
     })
