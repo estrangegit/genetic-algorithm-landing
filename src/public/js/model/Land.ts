@@ -176,6 +176,22 @@ export class Land {
     }
   }
 
+  rocketSelection(): void {
+    const retainedGradedRocketRatio = 0.3;
+    const retainedNonGradedRocketRatio = 0.2;
+
+    const retainedGradedRocketNb = this.rockets.length * retainedGradedRocketRatio;
+    const retainedNonGradedRocketNb = this.rockets.length * retainedNonGradedRocketRatio;
+
+    this.rockets.sort((r1, r2) => r2.score - r1.score);
+
+    const retainedGradedRockets = this.rockets.slice(0, retainedGradedRocketNb);
+    const nonGradedRockets = this.rockets.slice(retainedGradedRocketNb).sort((r1, r2) => 0.5 - Math.random());
+    const retainedNonGradedRockets = nonGradedRockets.slice(0, retainedNonGradedRocketNb);
+
+    this.rockets = [...retainedGradedRockets, ...retainedNonGradedRockets];
+  }
+
   drawRockets(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {
     for(let i = 0; i < this.rockets.length; i++){
       this.rockets[i].draw(ctx, canvasHeight);

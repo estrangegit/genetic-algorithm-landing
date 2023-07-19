@@ -1,5 +1,6 @@
 import { Land } from "../public/js/model/Land";
 import { Point } from "../public/js/model/Point";
+import { Rocket } from "../public/js/model/Rocket";
 import { SegmentIntersection } from "../public/js/model/SegmentIntersection";
 
 describe('test series for Land functionalities', () => {
@@ -36,5 +37,24 @@ describe('test series for Land functionalities', () => {
         expect(segmentIntersection.intersection.y).toEqual(500);
         expect(segmentIntersection.onSegment1).toEqual(true);
         expect(segmentIntersection.onSegment2).toEqual(false);
+    })
+
+    it('check selection method to verify graded an non graded criteria', async () => {
+      const land = new Land();
+      for(let i = 1; i <= 50; i++) {
+        const rocket = new Rocket();
+        rocket.score = i;
+        land.rockets.push(rocket);
+      }
+      land.rocketSelection();
+      const selectedScores = land.rockets.map(r => r.score);
+      for(let i = 0; i < selectedScores.length; i++) {
+        if(i < 15) {
+          expect(selectedScores[i]).toEqual(50 - i);
+        } else {
+          expect(selectedScores[i]).toBeLessThanOrEqual(35);
+          expect(selectedScores[i]).toBeGreaterThanOrEqual(1);
+        }
+      }
     })
 });
