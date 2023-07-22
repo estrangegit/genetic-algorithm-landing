@@ -81,7 +81,8 @@ export class Rocket {
   draw(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {
     if(ctx != null) {
         ctx.lineWidth = 10;
-        ctx.strokeStyle = `rgb(${this.getRocketColor().r}, ${this.getRocketColor().g}, ${this.getRocketColor().b})`;
+        const color: Color = this.getRocketColor();
+        ctx.strokeStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         ctx.beginPath();
         ctx.moveTo(this.positions[0].x, canvasHeight - this.positions[0].y);
         for(let i = 1; i < this.positions.length; i++) {

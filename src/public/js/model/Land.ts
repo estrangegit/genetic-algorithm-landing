@@ -74,7 +74,7 @@ export class Land {
     }
   }
 
-  goToNextStep(rocket: Rocket, gameConfig: GameConfig): void {
+  computeRocketPosition(rocket: Rocket, gameConfig: GameConfig): void {
     if(!rocket.isFlying) {
       return;
     }
@@ -89,6 +89,7 @@ export class Land {
     rocket.fuel -= rocket.command.power;
 
     const arcAngle = -rocket.command.angle * Math.PI / 180;
+
     const xacc = Math.sin(arcAngle) * rocket.command.power;
     const yacc = Math.cos(arcAngle) * rocket.command.power - gameConfig.g;
     rocket.speed.xSpeed += xacc;
@@ -124,6 +125,15 @@ export class Land {
     }
   }
 
+  computeRocketsPosition(gameConfig: GameConfig, maxTimeStep: number): void {
+    for (let i = 0; i < this.rockets.length; i++) {
+      for (let j = 0; j < maxTimeStep; j++) {
+          this.rockets[i].applyCommand();
+          this.computeRocketPosition(this.rockets[i], gameConfig);
+      }
+    }
+  }
+
   addPoint(point: Point): void {
     this.points.push(point);
   }
@@ -150,7 +160,7 @@ export class Land {
     const rocketSpeed = Math.sqrt(Math.pow(rocket.speed.xSpeed, 2) + Math.pow(rocket.speed.ySpeed, 2));
     const maxSpeed = Math.sqrt(Math.pow(gameConfig.maxLandingHSpeed, 2) + Math.pow(gameConfig.maxLandingVSpeed, 2));
     if(rocket.endOutOfLandingZone) {
-      const score = 50 - (50 * rocket.positions[rocket.positions.length - 1].distanceToLandingZone / this.getMaxDistance(gameConfig))
+      const score = 50 - (50 * rocket.positions[rocket.positions.length - 1].distanceToLandingZone / this.getMaxDistance(gameConfig));
       const speedPenalty = 0.05 * Math.max(rocketSpeed - maxSpeed, 0);
       rocket.score = score - speedPenalty;
     } else if(rocket.endOnLandingZone && (rocket.speed.ySpeed < -gameConfig.maxLandingVSpeed || Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed || rocket.command.angle  != 0)) {
@@ -190,6 +200,59 @@ export class Land {
     const retainedNonGradedRockets = nonGradedRockets.slice(0, retainedNonGradedRocketNb);
 
     this.rockets = [...retainedGradedRockets, ...retainedNonGradedRockets];
+  }
+
+  parentCrossover(parent1: Rocket, parent2: Rocket): Rocket[] {
+    const child1: Rocket = new Rocket();
+    child1.initPosition = new Point(parent1.initPosition.x, parent1.initPosition.y);
+    child1.position = new Point(child1.initPosition.x, child1.initPosition.y);
+    child1.initSpeed = new Speed(parent1.initSpeed.xSpeed, parent1.initSpeed.ySpeed);
+    child1.speed = new Speed(child1.initSpeed.xSpeed, child1.initSpeed.ySpeed);
+    child1.initFuel = parent1.initFuel;
+    child1.fuel = child1.initFuel;
+    child1.initCommand = new Command(parent1.initCommand.angle, parent1.command.power);
+    child1.command = new Command(child1.initCommand.angle, child1.initCommand.power);
+
+    const child2: Rocket = new Rocket();
+    child2.initPosition = new Point(parent1.initPosition.x, parent1.initPosition.y);
+    child2.position = new Point(child2.initPosition.x, child2.initPosition.y);
+    child2.initSpeed = new Speed(parent1.initSpeed.xSpeed, parent1.initSpeed.ySpeed);
+    child2.speed = new Speed(child2.initSpeed.xSpeed, child2.initSpeed.ySpeed);
+    child2.initFuel = parent1.initFuel;
+    child2.fuel = child2.initFuel;
+    child2.initCommand = new Command(parent1.initCommand.angle, parent1.command.power);
+    child2.command = new Command(child2.initCommand.angle, child2.initCommand.power);
+
+    const randomFactor = Math.random();
+    for(let i = 0; i < parent1.commands.length; i++) {
+      const parent1Angle = parent1.commands[i].angle;
+      const parent2Angle = parent2.commands[i].angle;
+
+      const parent1Power = parent1.commands[i].power;
+      const parent2Power = parent2.commands[i].power;
+
+      const child1Angle = randomFactor * parent1Angle + (1 - randomFactor) * parent2Angle;
+      const child2Angle = (1 - randomFactor) * parent1Angle + randomFactor * parent2Angle;
+
+      const child1Power = randomFactor * parent1Power + (1 - randomFactor) * parent2Power;
+      const child2Power = (1 - randomFactor) * parent1Power + randomFactor * parent2Power;
+
+      child1.commands.push(new Command(child1Angle, child1Power));
+      child2.commands.push(new Command(child2Angle, child2Power));
+    }
+
+    return [child1, child2];
+  }
+
+  rocketsCrossover(rocketNb: number): void {
+    const children: Rocket[] = [];
+    while(this.rockets.length + children.length < rocketNb) {
+      const randomIndexParent1 = this.getRandomInt(0, this.rockets.length - 1);
+      const randomIndexParent2 = this.getRandomInt(0, this.rockets.length - 1);
+      const [child1, child2] = this.parentCrossover(this.rockets[randomIndexParent1], this.rockets[randomIndexParent2]);
+      children.push(child1, child2);
+    }
+    this.rockets = [...this.rockets, ...children];
   }
 
   drawRockets(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {

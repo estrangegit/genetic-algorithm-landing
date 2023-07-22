@@ -2,13 +2,18 @@ import { GameConfig } from "./config/GameConfig.js";
 import { gameData } from "./data.js";
 import { Land } from "./model/Land.js";
 
-function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig): void {
-  for (let i = 0; i < land.rockets.length; i++) {
-    for (let j = 0; j < maxTimeStep; j++) {
-        land.rockets[i].applyCommand();
-        land.goToNextStep(land.rockets[i], gameConfig);
-    }
-  }
+
+function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig, ctx: CanvasRenderingContext2D, rocketNb: number): NodeJS.Timeout {
+  const timeoutId = setInterval(() => {
+    land.computeRocketsPosition(gameConfig, maxTimeStep);
+    land.computeRocketScores(gameConfig);
+    console.log(land);
+    land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
+    land.drawRockets(ctx, gameConfig.height);
+    land.rocketSelection();
+    land.rocketsCrossover(rocketNb)
+  }, 500);
+  return timeoutId;
 }
 
 $(function(){
@@ -38,6 +43,7 @@ $(function(){
   let selectedLand: string = ($landSelector.val() as string);
   const gameConfig = new GameConfig();
   const land = new Land();
+  let timeoutId: NodeJS.Timeout;
 
   gameConfig.initGameConfig(selectedLand);
   land.initLandscape(selectedLand);
@@ -53,14 +59,11 @@ $(function(){
     $startButton.on('click', () => {
       land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
       land.initRocketRandomCommands(selectedLand, ROCKET_NB, MAX_TIMESTEP);
-      runAlgorithm(MAX_TIMESTEP, land, gameConfig);
-      land.computeRocketScores(gameConfig);
-      land.drawRockets(ctx, gameConfig.height);
-      console.log(land);
+      timeoutId = runAlgorithm(MAX_TIMESTEP, land, gameConfig, ctx, ROCKET_NB);
     })
 
     $stopButton.on('click', () => {
-      land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
+      clearTimeout(timeoutId);
     })
   }
 })
