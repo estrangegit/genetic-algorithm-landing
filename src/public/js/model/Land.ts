@@ -158,10 +158,9 @@ export class Land {
 
   computeRocketScore(rocket: Rocket, gameConfig: GameConfig): void {
     const rocketSpeed = Math.sqrt(Math.pow(rocket.speed.xSpeed, 2) + Math.pow(rocket.speed.ySpeed, 2));
-    const maxSpeed = Math.sqrt(Math.pow(gameConfig.maxLandingHSpeed, 2) + Math.pow(gameConfig.maxLandingVSpeed, 2));
     if(rocket.endOutOfLandingZone) {
       const score = 50 - (50 * rocket.positions[rocket.positions.length - 1].distanceToLandingZone / this.getMaxDistance(gameConfig));
-      const speedPenalty = 0.05 * Math.max(rocketSpeed - maxSpeed, 0);
+      const speedPenalty = 0.5 * Math.min(Math.max(rocketSpeed - 100, 0), score) + 0.3 * Math.min(Math.max(rocketSpeed - 50, 0), score) + 0.2 * Math.min(Math.max(rocketSpeed - 30, 0), score);
       rocket.score = score - speedPenalty;
     } else if(rocket.endOnLandingZone && (rocket.speed.ySpeed < -gameConfig.maxLandingVSpeed || Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed || rocket.command.angle  != 0)) {
       let xSpeedPenalty = 0;
@@ -182,17 +181,15 @@ export class Land {
 
   computeRocketScores(gameConfig: GameConfig): void {
     for(let i = 0; i < this.rockets.length; i++) {
-      this.computeRocketScore(this.rockets[i], gameConfig);
+      if(this.rockets[i].score == -1) {
+        this.computeRocketScore(this.rockets[i], gameConfig);
+      }
     }
   }
 
-  rocketSelection(): void {
-    const retainedGradedRocketRatio = 0.3;
-    const retainedNonGradedRocketRatio = 0.2;
-
+  rocketSelection(retainedGradedRocketRatio: number, retainedNonGradedRocketRatio: number): number {
     const retainedGradedRocketNb = this.rockets.length * retainedGradedRocketRatio;
     const retainedNonGradedRocketNb = this.rockets.length * retainedNonGradedRocketRatio;
-
     this.rockets.sort((r1, r2) => r2.score - r1.score);
 
     const retainedGradedRockets = this.rockets.slice(0, retainedGradedRocketNb);
@@ -200,6 +197,7 @@ export class Land {
     const retainedNonGradedRockets = nonGradedRockets.slice(0, retainedNonGradedRocketNb);
 
     this.rockets = [...retainedGradedRockets, ...retainedNonGradedRockets];
+    return this.rockets[0].score;
   }
 
   parentCrossover(parent1: Rocket, parent2: Rocket): Rocket[] {
@@ -245,14 +243,28 @@ export class Land {
   }
 
   rocketsCrossover(rocketNb: number): void {
-    const children: Rocket[] = [];
-    while(this.rockets.length + children.length < rocketNb) {
-      const randomIndexParent1 = this.getRandomInt(0, this.rockets.length - 1);
-      const randomIndexParent2 = this.getRandomInt(0, this.rockets.length - 1);
-      const [child1, child2] = this.parentCrossover(this.rockets[randomIndexParent1], this.rockets[randomIndexParent2]);
-      children.push(child1, child2);
+    const parents = this.rockets;
+    this.rockets = [];
+    while(this.rockets.length < rocketNb) {
+      const randomIndexParent1 = this.getRandomInt(0, parents.length - 1);
+      const randomIndexParent2 = this.getRandomInt(0, parents.length - 1);
+      const [child1, child2] = this.parentCrossover(parents[randomIndexParent1], parents[randomIndexParent2]);
+      this.rockets.push(child1, child2);
     }
-    this.rockets = [...this.rockets, ...children];
+  }
+
+  rocketMutation(rocket: Rocket, mutationProbability: number): void {
+    for(let i = 1; i < rocket.commands.length; i++) {
+      if(Math.random()< mutationProbability) {
+        rocket.commands[i] = this.getRandomCommand(rocket.commands[i-1]);
+      }
+    }
+  }
+
+  rocketsMutation(mutationProbability: number): void {
+    for(let i = 0; i < this.rockets.length; i++) {
+      this.rocketMutation(this.rockets[i], mutationProbability);
+    }
   }
 
   drawRockets(ctx: CanvasRenderingContext2D | null, canvasHeight: number): void {
@@ -268,20 +280,26 @@ export class Land {
   getRandomCommands(initCommand: Command, commandNb: number): Command[] {
     const commands: Command[] = [];
     commands.push(initCommand);
-
-    let angle = initCommand.angle;
-    let power = initCommand.power;
+    let previousCommand = initCommand;
     for(let i = 0; i < commandNb - 1; i++) {
-      angle += this.getRandomInt(-15, 15);
-      angle = Math.min(Math.max(angle, -90), 90);
-
-      power += this.getRandomInt(-1, 1);
-      power = Math.min(Math.max(power, 0), 4);
-
-      const command = new Command(angle, power);
+      const command = this.getRandomCommand(previousCommand);
       commands.push(command);
+      previousCommand = command;
     }
     return commands;
+  }
+
+  getRandomCommand(initCommand: Command): Command {
+    let angle = initCommand.angle;
+    let power = initCommand.power;
+
+    angle += this.getRandomInt(-15, 15);
+    angle = Math.min(Math.max(angle, -90), 90);
+
+    power += this.getRandomInt(-1, 1);
+    power = Math.min(Math.max(power, 0), 4);
+
+    return new Command(angle, power);
   }
 
   checkLineIntersection(point11: Point, point12: Point, point21: Point, point22: Point): SegmentIntersection {

@@ -1,24 +1,42 @@
 import { GameConfig } from "./config/GameConfig.js";
 import { gameData } from "./data.js";
 import { Land } from "./model/Land.js";
+import { Rocket } from "./model/Rocket.js";
 
 
-function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig, ctx: CanvasRenderingContext2D, rocketNb: number): NodeJS.Timeout {
-  const timeoutId = setInterval(() => {
+function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig, ctx: CanvasRenderingContext2D, rocketNb: number, mutationProbability: number, retainedGradedRocketRatio: number, retainedNonGradedRocketRatio: number): NodeJS.Timeout {
+  let drawStep = 0;
+  let highestScore = 0;
+  let successfullLandingRocket: Rocket = new Rocket();
+  const timeoutId = setInterval((maxTimeStep, land, gameConfig, ctx, rocketNb, mutationProbability, retainedGradedRocketRatio, retainedNonGradedRocketRatio) => {
+    drawStep++;
     land.computeRocketsPosition(gameConfig, maxTimeStep);
     land.computeRocketScores(gameConfig);
-    console.log(land);
-    land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
-    land.drawRockets(ctx, gameConfig.height);
-    land.rocketSelection();
+    if(drawStep % 100 == 0) {
+      console.log('highest score: ' + highestScore);
+      console.log(JSON.parse(JSON.stringify(land)));
+      land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
+      land.drawRockets(ctx, gameConfig.height);
+    }
+    highestScore = land.rocketSelection(retainedGradedRocketRatio, retainedNonGradedRocketRatio);
+    if(highestScore > 80) {
+      successfullLandingRocket = land.rockets[0];
+      land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
+      successfullLandingRocket.draw(ctx, gameConfig.height);
+      clearTimeout(timeoutId);
+    }
     land.rocketsCrossover(rocketNb)
-  }, 500);
+    land.rocketsMutation(mutationProbability);
+  }, 5, maxTimeStep, land, gameConfig, ctx, rocketNb, mutationProbability, retainedGradedRocketRatio, retainedNonGradedRocketRatio);
   return timeoutId;
 }
 
 $(function(){
   const ROCKET_NB = 50;
-  const MAX_TIMESTEP = 100;
+  const MAX_TIMESTEP = 500;
+  const MUTATION_PROBABILITY = 0.01;
+  const RETAINED_GRADED_ROCKET_RATIO = 0.1;
+  const RETAINED_NON_GRADED_ROCKET_RATIO = 0;
 
   const landNames = Object.keys(gameData);
 
@@ -50,6 +68,7 @@ $(function(){
   land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
 
   $landSelector.on('change', function() {
+    clearTimeout(timeoutId);
     selectedLand = ($(this).val() as string);
     land.initLandscape(selectedLand);
     land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
@@ -59,7 +78,7 @@ $(function(){
     $startButton.on('click', () => {
       land.drawLandscape(ctx, gameConfig.width, gameConfig.height);
       land.initRocketRandomCommands(selectedLand, ROCKET_NB, MAX_TIMESTEP);
-      timeoutId = runAlgorithm(MAX_TIMESTEP, land, gameConfig, ctx, ROCKET_NB);
+      timeoutId = runAlgorithm(MAX_TIMESTEP, land, gameConfig, ctx, ROCKET_NB, MUTATION_PROBABILITY, RETAINED_GRADED_ROCKET_RATIO, RETAINED_NON_GRADED_ROCKET_RATIO);
     })
 
     $stopButton.on('click', () => {

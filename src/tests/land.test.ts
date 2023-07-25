@@ -47,7 +47,7 @@ describe('test series for Land functionalities', () => {
         rocket.score = i;
         land.rockets.push(rocket);
       }
-      land.rocketSelection();
+      land.rocketSelection(0.3, 0.2);
       const selectedScores = land.rockets.map(r => r.score);
       for(let i = 0; i < selectedScores.length; i++) {
         if(i < 15) {

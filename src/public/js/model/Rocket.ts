@@ -41,7 +41,7 @@ export class Rocket {
     this.endOutOfLand = false;
     this.endOutOfLandingZone = false;
     this.endOnLandingZone = false;
-    this.score = 0;
+    this.score = -1;
   }
 
   initRocket(selectedLand: string): void {
