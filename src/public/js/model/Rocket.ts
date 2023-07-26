@@ -6,7 +6,6 @@ import { Speed } from "./Speed.js";
 
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export class Rocket {
-  timeStep: number;
   positions: Point[];
   speeds: Speed[];
   commands: Command[];
@@ -25,7 +24,6 @@ export class Rocket {
   score: number;
 
   constructor() {
-    this.timeStep = 0;
     this.positions = [];
     this.speeds = [];
     this.commands = [];
@@ -45,7 +43,6 @@ export class Rocket {
   }
 
   initRocket(selectedLand: string): void {
-    this.timeStep = 0;
     this.positions = [];
     this.speeds = [];
     this.commands = [];
@@ -59,18 +56,33 @@ export class Rocket {
     this.command = new Command(this.initCommand.angle, this.initCommand.power);
   }
 
-  applyCommand(): void {
-   let nextAngle = this.commands[this.timeStep].angle;
-   let nextPower = this.commands[this.timeStep].power;
+  resetRocketTrajectory(): void {
+    this.positions = [];
+    this.speeds = [];
+    this.isFlying = true;
+    this.position = new Point(this.initPosition.x, this.initPosition.y);
+    this.speed = new Speed(this.initSpeed.xSpeed, this.initSpeed.ySpeed);
+    this.command = new Command(this.initCommand.angle, this.initCommand.power);
+    this.fuel = this.initFuel;
+    this.endOutOfLand = false;
+    this.endOutOfLandingZone = false;
+    this.endOnLandingZone = false;
+    this.score = -1;
+  }
+
+  applyCommand(j): void {
+   let nextAngle = this.commands[j].angle;
+   let nextPower = this.commands[j].power;
 
    nextAngle = Math.round(nextAngle);
-   nextAngle = Math.max(-90, nextAngle, this.command.angle - 15);
-   nextAngle = Math.min(90, nextAngle, this.command.angle + 15);
+   nextAngle = Math.max(-90, nextAngle, this.commands[j - 1].angle - 15);
+   nextAngle = Math.min(90, nextAngle, this.commands[j - 1].angle + 15);
 
    nextPower = Math.round(nextPower);
-   nextPower = Math.max(0, nextPower, this.command.power - 1);
-   nextPower = Math.min(4, nextPower, this.command.power + 1);
+   nextPower = Math.max(0, nextPower, this.commands[j - 1].power - 1);
+   nextPower = Math.min(4, nextPower, this.commands[j - 1].power + 1);
 
+   this.commands[j] = new Command(nextAngle, nextPower);
    this.command = new Command(nextAngle, nextPower);
   }
 

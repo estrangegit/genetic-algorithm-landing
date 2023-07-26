@@ -10,12 +10,16 @@ import { Speed } from "./Speed.js";
 export class Land {
   points: Point[];
   rockets: Rocket[];
+  retainedGradedRockets: Rocket[];
+  retainedNonGradedRockets: Rocket[];
   landingZonePoint1: Point;
   landingZonePoint2: Point;
 
   constructor() {
     this.points = [];
     this.rockets = [];
+    this.retainedGradedRockets = [];
+    this.retainedNonGradedRockets = [];
     this.landingZonePoint1 = new Point(-1, -1);
     this.landingZonePoint2 = new Point(-1, -1);
   }
@@ -79,7 +83,6 @@ export class Land {
       return;
     }
 
-    rocket.timeStep = rocket.timeStep + 1;
     rocket.positions.push(new Point(rocket.position.x, rocket.position.y));
     rocket.speeds.push(new Speed(rocket.speed.xSpeed, rocket.speed.ySpeed));
 
@@ -127,8 +130,8 @@ export class Land {
 
   computeRocketsPosition(gameConfig: GameConfig, maxTimeStep: number): void {
     for (let i = 0; i < this.rockets.length; i++) {
-      for (let j = 0; j < maxTimeStep; j++) {
-          this.rockets[i].applyCommand();
+      for (let j = 1; j < maxTimeStep; j++) {
+          this.rockets[i].applyCommand(j);
           this.computeRocketPosition(this.rockets[i], gameConfig);
       }
     }
@@ -162,7 +165,7 @@ export class Land {
       const score = 50 - (50 * rocket.positions[rocket.positions.length - 1].distanceToLandingZone / this.getMaxDistance(gameConfig));
       const speedPenalty = 0.5 * Math.min(Math.max(rocketSpeed - 100, 0), score) + 0.3 * Math.min(Math.max(rocketSpeed - 50, 0), score) + 0.2 * Math.min(Math.max(rocketSpeed - 30, 0), score);
       rocket.score = score - speedPenalty;
-    } else if(rocket.endOnLandingZone && (rocket.speed.ySpeed < -gameConfig.maxLandingVSpeed || Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed || rocket.command.angle  != 0)) {
+    } else if(rocket.endOnLandingZone && (Math.abs(rocket.speed.ySpeed) > gameConfig.maxLandingVSpeed || Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed || rocket.command.angle  != 0)) {
       let xSpeedPenalty = 0;
       let ySpeedPenalty = 0;
       if (Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed) {
@@ -172,7 +175,7 @@ export class Land {
         ySpeedPenalty = (-gameConfig.maxLandingVSpeed - rocket.speed.ySpeed) / 6;
       }
       rocket.score = 80 - xSpeedPenalty - ySpeedPenalty;
-    } else if(rocket.endOnLandingZone && rocket.speed.ySpeed >= -gameConfig.maxLandingVSpeed && Math.abs(rocket.speed.xSpeed) <= gameConfig.maxLandingHSpeed && rocket.command.angle  == 0) {
+    } else if(rocket.endOnLandingZone && Math.abs(rocket.speed.ySpeed) <= gameConfig.maxLandingVSpeed && Math.abs(rocket.speed.xSpeed) <= gameConfig.maxLandingHSpeed && rocket.command.angle  == 0) {      
       rocket.score = 80 + (20 * rocket.fuel / rocket.initFuel)
     } else {
       rocket.score = 0;
@@ -192,12 +195,11 @@ export class Land {
     const retainedNonGradedRocketNb = this.rockets.length * retainedNonGradedRocketRatio;
     this.rockets.sort((r1, r2) => r2.score - r1.score);
 
-    const retainedGradedRockets = this.rockets.slice(0, retainedGradedRocketNb);
+    this.retainedGradedRockets = this.rockets.slice(0, retainedGradedRocketNb);
     const nonGradedRockets = this.rockets.slice(retainedGradedRocketNb).sort((r1, r2) => 0.5 - Math.random());
-    const retainedNonGradedRockets = nonGradedRockets.slice(0, retainedNonGradedRocketNb);
+    this.retainedNonGradedRockets = nonGradedRockets.slice(0, retainedNonGradedRocketNb);
 
-    this.rockets = [...retainedGradedRockets, ...retainedNonGradedRockets];
-    return this.rockets[0].score;
+    return this.retainedGradedRockets[0].score;
   }
 
   parentCrossover(parent1: Rocket, parent2: Rocket): Rocket[] {
@@ -222,7 +224,14 @@ export class Land {
     child2.command = new Command(child2.initCommand.angle, child2.initCommand.power);
 
     const randomFactor = Math.random();
-    for(let i = 0; i < parent1.commands.length; i++) {
+    const crossoverIndex = this.getRandomInt(0, Math.min(parent1.positions.length, parent2.positions.length));
+
+    for(let i = 0; i < crossoverIndex; i++) {
+      child1.commands.push(new Command(parent1.commands[i].angle, parent1.commands[i].power));
+      child2.commands.push(new Command(parent2.commands[i].angle, parent2.commands[i].power));
+    }
+
+    for(let i = crossoverIndex; i < parent1.commands.length; i++) {
       const parent1Angle = parent1.commands[i].angle;
       const parent2Angle = parent2.commands[i].angle;
 
@@ -242,28 +251,50 @@ export class Land {
     return [child1, child2];
   }
 
-  rocketsCrossover(rocketNb: number): void {
-    const parents = this.rockets;
-    this.rockets = [];
-    while(this.rockets.length < rocketNb) {
+  rocketsCrossover(rocketNb: number, mutationProbability: number, commandNb: number, startIndex: number): void {
+    const parents = [...this.retainedGradedRockets, ...this.retainedNonGradedRockets];
+    const children: Rocket[] = [...this.retainedGradedRockets];
+    while(children.length < rocketNb) {
       const randomIndexParent1 = this.getRandomInt(0, parents.length - 1);
       const randomIndexParent2 = this.getRandomInt(0, parents.length - 1);
       const [child1, child2] = this.parentCrossover(parents[randomIndexParent1], parents[randomIndexParent2]);
-      this.rockets.push(child1, child2);
+      this.rocketMutationAfterIndex(child1, mutationProbability, commandNb, startIndex);
+      this.rocketMutationAfterIndex(child2, mutationProbability, commandNb, startIndex)
+      children.push(child1, child2);
+    }
+    this.rockets = [...children];
+  }
+
+  rocketMutationAfterIndex(rocket: Rocket, mutationProbability: number, commandNb: number, startIndex: number): void {
+    if(Math.random()< mutationProbability) {
+      this.setRandomCommandsFromStartIndex(rocket, commandNb, startIndex)
     }
   }
 
-  rocketMutation(rocket: Rocket, mutationProbability: number): void {
-    for(let i = 1; i < rocket.commands.length; i++) {
-      if(Math.random()< mutationProbability) {
-        rocket.commands[i] = this.getRandomCommand(rocket.commands[i-1]);
-      }
-    }
-  }
-
-  rocketsMutation(mutationProbability: number): void {
+  rocketsMutationAfterIndex(mutationProbability: number, commandNb: number, startIndex: number): void {    
     for(let i = 0; i < this.rockets.length; i++) {
-      this.rocketMutation(this.rockets[i], mutationProbability);
+      this.rocketMutationAfterIndex(this.rockets[i], mutationProbability, commandNb, startIndex);
+    }
+  }
+
+  randomRocketMutation(rocket: Rocket, mutationProbability: number, commandNb: number): void {
+    for(let i = 1; i < commandNb; i++) {
+    if(Math.random()< mutationProbability) {
+      const randomCommand: Command = this.getRandomCommand(rocket.commands[i-1]);
+      rocket.commands[i] = new Command(randomCommand.angle, randomCommand.power);
+    }
+    }
+  }
+
+  randomRocketsMutation(mutationProbability: number, commandNb: number): void {
+    for(let i = 0; i < this.rockets.length; i++) {
+      this.randomRocketMutation(this.rockets[i], mutationProbability, commandNb);
+    }
+  }
+
+  resetRocketTrajectories(): void {
+    for(let i = 0; i < this.rockets.length; i++) {
+      this.rockets[i].resetRocketTrajectory();
     }
   }
 
@@ -287,6 +318,22 @@ export class Land {
       previousCommand = command;
     }
     return commands;
+  }
+
+  setRandomCommandsFromStartIndex(rocket: Rocket, commandNb: number, startIndex: number): void {
+    const commands: Command[] = [];
+
+    for(let i = 0; i < startIndex; i++) {
+      commands.push(rocket.commands[i]);
+    }
+    let previousCommand: Command = rocket.commands[startIndex];
+    for(let i = startIndex; i < commandNb; i++) {
+      const command: Command = this.getRandomCommand(previousCommand);
+      commands.push(command);
+      previousCommand = command
+    }
+
+    rocket.commands = commands
   }
 
   getRandomCommand(initCommand: Command): Command {
