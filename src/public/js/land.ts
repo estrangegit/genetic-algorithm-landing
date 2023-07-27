@@ -25,20 +25,20 @@ function runAlgorithm(maxTimeStep: number, land: Land, gameConfig: GameConfig, c
       successfullLandingRocket.draw(ctx, gameConfig.height);
       clearTimeout(timeoutId);
     }
-    land.rocketsCrossover(rocketNb, mutationProbabilityAfterIndex, maxTimeStep, Math.floor(highestScore));
+    land.rocketsCrossover(rocketNb, mutationProbabilityAfterIndex, maxTimeStep);
     land.randomRocketsMutation(randomMutationProbability, maxTimeStep);
     land.resetRocketTrajectories();
-  }, 5, maxTimeStep, land, gameConfig, ctx, rocketNb, mutationProbabilityAfterIndex, randomMutationProbability, retainedGradedRocketRatio, retainedNonGradedRocketRatio);
+  }, 10, maxTimeStep, land, gameConfig, ctx, rocketNb, mutationProbabilityAfterIndex, randomMutationProbability, retainedGradedRocketRatio, retainedNonGradedRocketRatio);
   return timeoutId;
 }
 
 $(function(){
   const ROCKET_NB = 50;
   const MAX_TIMESTEP = 500;
-  const MUTATION_PROBABILITY_AFTER_INDEX = 0.1;
+  const MUTATION_PROBABILITY_AFTER_INDEX = 0.5;
   const RANDOM_MUTATION_PROBABILITY = 0.01;
-  const RETAINED_GRADED_ROCKET_RATIO = 0.3;
-  const RETAINED_NON_GRADED_ROCKET_RATIO = 0.2;
+  const RETAINED_GRADED_ROCKET_RATIO = 0.05;
+  const RETAINED_NON_GRADED_ROCKET_RATIO = 0.03;
 
   const landNames = Object.keys(gameData);
 

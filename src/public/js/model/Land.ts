@@ -155,14 +155,14 @@ export class Land {
     }
   }
 
-  getMaxDistance(gameConfig: GameConfig): number {
-    return Math.sqrt(Math.pow(gameConfig.width, 2) + Math.pow(gameConfig.height, 2));
+  getMaxDistance(): number {
+    return Math.max(...this.rockets.filter(r => r.positions[r.positions.length - 1].distanceToLandingZone >= 0).map(r => r.positions[r.positions.length - 1].distanceToLandingZone))
   }
 
   computeRocketScore(rocket: Rocket, gameConfig: GameConfig): void {
     const rocketSpeed = Math.sqrt(Math.pow(rocket.speed.xSpeed, 2) + Math.pow(rocket.speed.ySpeed, 2));
     if(rocket.endOutOfLandingZone) {
-      const score = 50 - (50 * rocket.positions[rocket.positions.length - 1].distanceToLandingZone / this.getMaxDistance(gameConfig));
+      const score = 50 - (50 * (rocket.positions[rocket.positions.length - 1].distanceToLandingZone) / this.getMaxDistance());
       const speedPenalty = 0.5 * Math.min(Math.max(rocketSpeed - 100, 0), score) + 0.3 * Math.min(Math.max(rocketSpeed - 50, 0), score) + 0.2 * Math.min(Math.max(rocketSpeed - 30, 0), score);
       rocket.score = score - speedPenalty;
     } else if(rocket.endOnLandingZone && (Math.abs(rocket.speed.ySpeed) > gameConfig.maxLandingVSpeed || Math.abs(rocket.speed.xSpeed) > gameConfig.maxLandingHSpeed || rocket.command.angle  != 0)) {
@@ -210,7 +210,7 @@ export class Land {
     child1.speed = new Speed(child1.initSpeed.xSpeed, child1.initSpeed.ySpeed);
     child1.initFuel = parent1.initFuel;
     child1.fuel = child1.initFuel;
-    child1.initCommand = new Command(parent1.initCommand.angle, parent1.command.power);
+    child1.initCommand = new Command(parent1.initCommand.angle, parent1.initCommand.power);
     child1.command = new Command(child1.initCommand.angle, child1.initCommand.power);
 
     const child2: Rocket = new Rocket();
@@ -220,7 +220,7 @@ export class Land {
     child2.speed = new Speed(child2.initSpeed.xSpeed, child2.initSpeed.ySpeed);
     child2.initFuel = parent1.initFuel;
     child2.fuel = child2.initFuel;
-    child2.initCommand = new Command(parent1.initCommand.angle, parent1.command.power);
+    child2.initCommand = new Command(parent1.initCommand.angle, parent1.initCommand.power);
     child2.command = new Command(child2.initCommand.angle, child2.initCommand.power);
 
     const randomFactor = Math.random();
@@ -251,15 +251,16 @@ export class Land {
     return [child1, child2];
   }
 
-  rocketsCrossover(rocketNb: number, mutationProbability: number, commandNb: number, startIndex: number): void {
+  rocketsCrossover(rocketNb: number, mutationProbability: number, commandNb: number): void {
     const parents = [...this.retainedGradedRockets, ...this.retainedNonGradedRockets];
     const children: Rocket[] = [...this.retainedGradedRockets];
+    const mutationIndex = this.getRandomInt(Math.floor((this.retainedGradedRockets[0].positions.length - 1) * 4 / 5), this.retainedGradedRockets[0].positions.length - 1);
     while(children.length < rocketNb) {
       const randomIndexParent1 = this.getRandomInt(0, parents.length - 1);
       const randomIndexParent2 = this.getRandomInt(0, parents.length - 1);
       const [child1, child2] = this.parentCrossover(parents[randomIndexParent1], parents[randomIndexParent2]);
-      this.rocketMutationAfterIndex(child1, mutationProbability, commandNb, startIndex);
-      this.rocketMutationAfterIndex(child2, mutationProbability, commandNb, startIndex)
+      this.rocketMutationAfterIndex(child1, mutationProbability, commandNb, mutationIndex);
+      this.rocketMutationAfterIndex(child2, mutationProbability, commandNb, mutationIndex)
       children.push(child1, child2);
     }
     this.rockets = [...children];
@@ -336,9 +337,9 @@ export class Land {
     rocket.commands = commands
   }
 
-  getRandomCommand(initCommand: Command): Command {
-    let angle = initCommand.angle;
-    let power = initCommand.power;
+  getRandomCommand(previousCommand: Command): Command {
+    let angle = previousCommand.angle;
+    let power = previousCommand.power;
 
     angle += this.getRandomInt(-15, 15);
     angle = Math.min(Math.max(angle, -90), 90);
